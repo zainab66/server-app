@@ -10,99 +10,134 @@ const nodemailer = require('nodemailer');
 router.post(
   '/addUser',
   expressAsyncHandler(async (req, res) => {
-    const {
-      fullName,
-      email,
-      phoneNumber,
-      country,
-      state,
-      city,
-      address,
-      zipCode,
-      company,
-      role,
-      // password,
-      createdBy,
-    } = req.body.email;
+    const { fullName, email } = req.body;
     const password = 123456;
-    let smtpTransport = nodemailer.createTransport({
-      service: 'Gmail',
-      port: 465,
-      auth: {
-        user: 'zainabdeveloper123@gmail.com',
-        pass: 'sccsakkmaxjicent',
-      },
-    });
-
-    let mailOptions = {
-      from: 'no-reply',
-      to: email,
-      subject: ' Account Activation Link',
-      html: `<h2>Hello ${fullName}</h2>
-     <h2>Please click on given link to activate you account by using these credentials
-Email:${email} 
-Password:${password}  </h2>
-     <p>http://localhost:3000/login</p>`,
-    };
-
-    smtpTransport.sendMail(mailOptions, (error, response) => {
-      if (error) {
-        res.send(error);
+    try {
+      const oldUser =
+        (await Assistant.findOne({ email })) ||
+        (await Assistant.findOne({ fullName }));
+      if (oldUser) {
+        return res.status(200).json({ message: 'User already exists' });
       } else {
-        res.status(200).send({
-          message: 'Please make your account :)',
+        const user = new Assistant({
+          fullName: req.body.fullName,
+          email: req.body.email,
+          role: req.body.role,
+          password: password,
+
+          createdBy: req.body.createdBy,
         });
+        const createdUser = await user.save();
+        // res.send({
+        //   _id: createdUser._id,
+        //   fullName: createdUser.fullName,
+        //   email: createdUser.email,
+        //   password: createdUser.password,
+        //   role: createdUser.role,
+        //   createdBy: createdUser.createdBy,
+        // });
+        res
+          .status(200)
+          .json({ createdUser, message: 'Invitation send successfully' });
+
+        let smtpTransport = nodemailer.createTransport({
+          service: 'Gmail',
+          port: 465,
+          auth: {
+            user: 'zainabdeveloper123@gmail.com',
+            pass: 'sccsakkmaxjicent',
+          },
+        });
+
+        let mailOptions = {
+          from: 'no-reply',
+          to: email,
+          subject: ' Account Activation Link',
+          html: `<h2>Hello ${fullName}</h2>
+         <h2>Please click on given link to activate you account by using these credentials
+    Email:${email}
+    Password:${password}  </h2>
+         <p>https://xi-team.onrender.com/login</p>`,
+        };
+
+        smtpTransport.sendMail(mailOptions, (error, response) => {
+          if (error) {
+            res.send(error);
+          } else {
+            res.status(200).json({
+              message: 'Please make your account :)',
+            });
+          }
+        });
+        smtpTransport.close();
+        // res.status(200).json({ createdUser });
       }
-    });
-    smtpTransport.close();
+    } catch (error) {
+      res.status(500).json({ message: 'Something went wrong' });
+      console.log(error);
+    }
 
-    //   if (!name || !email || !password) {
-    //     res.status(400);
-    //     throw new Error('Please add all fields');
-    //   }
+    //     const { fullName, email } = req.body.email;
+    //     const password = 123456;
+    //     let smtpTransport = nodemailer.createTransport({
+    //       service: 'Gmail',
+    //       port: 465,
+    //       auth: {
+    //         user: 'zainabdeveloper123@gmail.com',
+    //         pass: 'sccsakkmaxjicent',
+    //       },
+    //     });
 
-    // Check if user exists
-    //const userExists = await User.findOne({ email });
+    //     let mailOptions = {
+    //       from: 'no-reply',
+    //       to: email,
+    //       subject: ' Account Activation Link',
+    //       html: `<h2>Hello ${fullName}</h2>
+    //      <h2>Please click on given link to activate you account by using these credentials
+    // Email:${email}
+    // Password:${password}  </h2>
+    //      <p>http://localhost:3000/login</p>`,
+    //     };
 
-    // if (userExists) {
-    //   res.status(400);
-    //   throw new Error('User already exists');
-    // }
+    //     smtpTransport.sendMail(mailOptions, (error, response) => {
+    //       if (error) {
+    //         res.send(error);
+    //       } else {
+    //         res.status(200).json({
+    //           message: 'Please make your account :)',
+    //         });
+    //       }
+    //     });
+    //     smtpTransport.close();
 
-    const user = new Assistant({
-      fullName: req.body.email.fullName,
-      email: req.body.email.email,
-      // phoneNumber: req.body.email.phoneNumber,
-      // country: req.body.email.country,
-      // state: req.body.email.state,
-      // city: req.body.email.city,
-      // address: req.body.email.address,
-      // zipCode: req.body.email.zipCode,
-      // company: req.body.email.company,
-      // role: req.body.email.role,
-      role: req.body.email.role,
-      password: password,
+    //     if (!fullName || !email) {
+    //       res.status(400).json({ message: 'Please add all fields' });
+    //     }
 
-      createdBy: req.body.email.createdBy,
-    });
-    const createdUser = await user.save();
-    res.send({
-      _id: createdUser._id,
-      fullName: createdUser.fullName,
-      email: createdUser.email,
-      // phoneNumber: createdUser.phoneNumber,
-      // country: createdUser.country,
-      // state: createdUser.state,
-      // city: createdUser.city,
-      // address: createdUser.address,
-      // zipCode: createdUser.zipCode,
-      // company: createdUser.company,
-      // role: createdUser.role,
-      password: createdUser.password,
-      role: createdUser.role,
+    //     // Check if user exists
+    //     const userExists = await Assistant.findOne({ email });
 
-      createdBy: createdUser.createdBy,
-    });
+    //     if (userExists) {
+    //       res.status(400).json({ message: 'User already exists' });
+    //     }
+
+    //     const user = new Assistant({
+    //       fullName: req.body.email.fullName,
+    //       email: req.body.email.email,
+    //       role: req.body.email.role,
+    //       password: password,
+
+    //       createdBy: req.body.email.createdBy,
+    //     });
+    //     const createdUser = await user.save();
+    //     res.send({
+    //       _id: createdUser._id,
+    //       fullName: createdUser.fullName,
+    //       email: createdUser.email,
+    //       password: createdUser.password,
+    //       role: createdUser.role,
+    //       createdBy: createdUser.createdBy,
+    //     });
   })
 );
 
