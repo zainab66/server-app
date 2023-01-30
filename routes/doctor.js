@@ -57,7 +57,24 @@ router.post(
     // if (!validPassword) {
     //   return res.status(401).send('Invalid Password');
     // }
-    if (user) {
+    console.log('user', user);
+    // const assistant = await Assistant.findOne({ email: req.body.email.email });
+    if (user.role === 'Assistant') {
+      user.password = req.body.email.password;
+      const updatedAssistant = await user.save();
+      res.send({
+        _id: updatedAssistant._id,
+        name: updatedAssistant.name,
+        email: updatedAssistant.email,
+        role: updatedAssistant.role,
+        token: generateToken(updatedAssistant),
+      });
+      //  res.send({ message: 'Assistant Updated', assistant: updatedAssistant });
+    }
+    // else {
+    //   res.status(404).send({ message: 'assistant Not Found' });
+    // }
+    else if (user.role === 'admin') {
       // if (validPassword) {
       res.send({
         _id: user._id,

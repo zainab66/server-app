@@ -7,11 +7,13 @@ const bcrypt = require('bcrypt');
 const authorize = require('../middleware/authorize');
 const isDoctor = require('../middleware/doctorAuthorize');
 const nodemailer = require('nodemailer');
+const jwt = require('jsonwebtoken');
+
 router.post(
   '/addUser',
   expressAsyncHandler(async (req, res) => {
-    const { fullName, email } = req.body;
-    const password = 123456;
+    const { fullName, email, password, role, createdBy } = req.body;
+    //const password = 123456;
     try {
       const oldUser =
         (await Assistant.findOne({ email })) ||
@@ -23,8 +25,7 @@ router.post(
           fullName: req.body.fullName,
           email: req.body.email,
           role: req.body.role,
-          password: password,
-
+          password: '',
           createdBy: req.body.createdBy,
         });
         const createdUser = await user.save();
@@ -40,12 +41,20 @@ router.post(
           .status(200)
           .json({ createdUser, message: 'Invitation send successfully' });
 
+        const token = jwt.sign(
+          { fullName, email, password, role, createdBy },
+          process.env.JWT_ACC_ACTIVATE,
+          {
+            expiresIn: '20m',
+          }
+        );
+
         let smtpTransport = nodemailer.createTransport({
           service: 'Gmail',
           port: 465,
           auth: {
             user: 'zainabdeveloper123@gmail.com',
-            pass: 'sccsakkmaxjicent',
+            pass: 'wklvipkbxbzdogtf',
           },
         });
 
@@ -56,8 +65,9 @@ router.post(
           html: `<h2>Hello ${fullName}</h2>
          <h2>Please click on given link to activate you account by using these credentials
     Email:${email}
-    Password:${password}  </h2>
-         <p>https://xi-team.onrender.com/login</p>`,
+     </h2>
+    <h2>Please click on given link to activate you account</h2>
+    <p>${process.env.CLIENT_URL}/activate/${token}</p>`,
         };
 
         smtpTransport.sendMail(mailOptions, (error, response) => {
@@ -65,7 +75,8 @@ router.post(
             res.send(error);
           } else {
             res.status(200).json({
-              message: 'Please make your account :)',
+              message:
+                'Please visit your email address and active your account',
             });
           }
         });
@@ -186,31 +197,84 @@ router.put(
   })
 );
 
+// router.post(
+//   '/signin',
+//   expressAsyncHandler(async (req, res) => {
+//     const customer = await Assistant.findOne({ email: req.body.email.email });
+//     // const validPassword = await bcrypt.compare(
+//     //   req.body.email.password,
+//     //   customer.password
+//     // );
+//     // if (!validPassword) {
+//     //   return res.status(401).send('Invalid Password');
+//     // }
+//     if (customer) {
+//       // if (validPassword) {
+//       res.send({
+//         _id: customer._id,
+//         name: customer.name,
+//         email: customer.email,
+//         isCustomer: customer.isCustomer,
+//         token: generateToken(customer),
+//       });
+//       console.log('l', customer.isCustomer);
+//       return;
+//       // }
+//     }
+//     res.status(401).send({ message: 'Invalid email ' });
+//   })
+// );
+
 router.post(
-  '/signin',
+  '/email-activate',
   expressAsyncHandler(async (req, res) => {
-    const customer = await Assistant.findOne({ email: req.body.email.email });
-    // const validPassword = await bcrypt.compare(
-    //   req.body.email.password,
-    //   customer.password
-    // );
-    // if (!validPassword) {
-    //   return res.status(401).send('Invalid Password');
-    // }
-    if (customer) {
-      // if (validPassword) {
-      res.send({
-        _id: customer._id,
-        name: customer.name,
-        email: customer.email,
-        isCustomer: customer.isCustomer,
-        token: generateToken(customer),
-      });
-      console.log('l', customer.isCustomer);
-      return;
-      // }
+    const token = req.body.token;
+    if (token) {
+      jwt.verify(
+        token,
+        process.env.JWT_ACC_ACTIVATE,
+        function (err, decodedToken) {
+          if (err) {
+            return res.status(400).json({ error: 'Incorrect or Expired link' });
+          }
+          const { fullName, email, password, role, createdBy } = decodedToken;
+
+          //Assistant.findOne({ email }).exec((err, user) => {
+
+          // if (user) {
+          //   return res.status(401).send({ message: 'User already exists' });
+          // }
+
+          let newUser = new Assistant({
+            fullName,
+            email,
+            password,
+            role,
+            createdBy,
+          });
+
+          newUser.save((err, success) => {
+            if (err) {
+              return res.status(400).json({ error: err });
+            }
+            // res.send({
+            //   _id: createdUser._id,
+            //   fullName: createdUser.fullName,
+            //   email: createdUser.email,
+            //   role: createdUser.role,
+            //   createdBy: createdUser.createdBy,
+            //   //profilePicture: createdUser.profilePicture,
+            //   token: generateToken(createdUser),
+            // });
+            res.json({ message: 'signup success', success });
+          });
+
+          // });
+        }
+      );
+    } else {
+      return res.json({ error: 'Incorrect ' });
     }
-    res.status(401).send({ message: 'Invalid email ' });
   })
 );
 

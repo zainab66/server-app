@@ -4,83 +4,125 @@ const Patient = require('../models/patientModel.js');
 const expressAsyncHandler = require('express-async-handler');
 const authorize = require('../middleware/authorize');
 const isDoctor = require('../middleware/doctorAuthorize');
+const isAssistance = require('../middleware/assistantAuthorize');
+
 router.post(
   '/addPatient',
   expressAsyncHandler(async (req, res) => {
-    // const {
-    //   email,
-    //   firstName,
-    //   phoneNumber,
-    //   lastName,
-    //   age,
-    //   gender,
-    //   address,
-    //   description,
-    //   occupation,
-    //   firstVisit,
-    //   recurringvisit,
-    //   isPatient,
-    //   createdBy,
-    // } = req.body.email;
-
+    const {
+      email,
+      firstName,
+      phoneNumber,
+      lastName,
+      age,
+      gender,
+      isPatient,
+      createdBy,
+    } = req.body;
+    console.log(
+      email,
+      firstName,
+      phoneNumber,
+      lastName,
+      age,
+      gender,
+      isPatient,
+      createdBy
+    );
     //   if (!name || !email || !password) {
     //     res.status(400);
     //     throw new Error('Please add all fields');
     //   }
 
     // Check if user exists
-    //const userExists = await User.findOne({ email });
+    const userExists = await Patient.findOne({ email });
 
-    // if (userExists) {
-    //   res.status(400);
-    //   throw new Error('User already exists');
-    // }
+    if (userExists) {
+      res.status(400).json({ message: 'Patient already exists' });
+    }
 
-    const user = new Patient({
-      firstName: req.body.email.firstName,
-      email: req.body.email.email,
-      phoneNumber: req.body.email.phoneNumber,
-      lastName: req.body.email.lastName,
-      age: req.body.email.age,
-      gender: req.body.email.gender,
-      address: req.body.email.address,
-      description: req.body.email.description,
-      occupation: req.body.email.occupation,
-      firstVisit: req.body.email.firstVisit,
-      recurringvisit: req.body.email.recurringvisit,
-      isPatient: req.body.email.isPatient,
-      createdBy: req.body.email.createdBy,
+    const patient = new Patient({
+      firstName: req.body.firstName,
+      email: req.body.email,
+      phoneNumber: req.body.phoneNumber,
+      lastName: req.body.lastName,
+      age: req.body.age,
+      gender: req.body.gender,
+      region: req.body.region,
+      city: req.body.city,
+      postalCode: req.body.postalCode,
+      isPatient: req.body.isPatient,
+      createdBy: req.body.createdBy,
     });
-    const createdUser = await user.save();
-    res.send({
-      _id: createdUser._id,
-      firstName: createdUser.firstName,
-      email: createdUser.email,
-      phoneNumber: createdUser.phoneNumber,
-      lastName: createdUser.lastName,
-      age: createdUser.age,
-      gender: createdUser.gender,
-      address: createdUser.address,
-      description: createdUser.description,
-      occupation: createdUser.occupation,
-      firstVisit: createdUser.firstVisit,
-      recurringvisit: createdUser.recurringvisit,
-      isPatient: createdUser.isPatient,
-      createdBy: createdUser.createdBy,
-    });
+    const createdPatient = await patient.save();
+    res
+      .status(200)
+      .json({ createdPatient, message: 'Patient create successfully' });
+    // res.send({
+    //   _id: createdUser._id,
+    //   firstName: createdUser.firstName,
+    //   email: createdUser.email,
+    //   phoneNumber: createdUser.phoneNumber,
+    //   lastName: createdUser.lastName,
+    //   age: createdUser.age,
+    //   gender: createdUser.gender,
+    //   region: createdUser.region,
+    //   city: createdUser.city,
+    //   postalCode: createdUser.postalCode,
+    //   isPatient: createdUser.isPatient,
+    //   createdBy: createdUser.createdBy,
+    // });
   })
 );
 
 router.get(
   '/getPatient',
   authorize,
-  isDoctor,
+  isAssistance,
 
   expressAsyncHandler(async (req, res) => {
     console.log(req.user._id);
     const patients = await Patient.find({ createdBy: req.user._id });
-    res.send({ patients });
+    res.status(200).json({ patients });
+    //console.log(patients, patients[0]._id);
   })
 );
 
+router.put(
+  '/:patientId',
+  authorize,
+  expressAsyncHandler(async (req, res) => {
+    // console.log(req.params.patientId);
+
+    const patient = await Patient.findOne({ patientId: req.params.patientId });
+    if (patient) {
+      patient.firstName = req.body.firstName || patient.firstName;
+      // profile.email = req.body.email || profile.email;
+      // profile.password = req.body.password||  profile.password;
+
+      const updatedpatient = await patient.save();
+      res.status(200).json({ updatedpatient, message: 'Patient Updated' });
+      // res.send({ message: 'Patient Updated',updatedpatient });
+      // console.log('p', updatedpatient);
+    } else {
+      res.status(404).json({ message: 'Patient Not Found' });
+    }
+  })
+);
+
+router.delete(
+  '/:patientId',
+  authorize,
+  expressAsyncHandler(async (req, res) => {
+    const { patientId } = req.params;
+    const patient = await Patient.findOne({ patientId: req.params.patientId });
+    console.log(patientId);
+    if (patient) {
+      const deletePatient = await patient.remove();
+      res.send({ message: 'Patient Deleted', deletePatient });
+    } else {
+      res.status(404).send({ message: 'Patient Not Found' });
+    }
+  })
+);
 module.exports = router;

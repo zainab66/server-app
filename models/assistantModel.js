@@ -16,7 +16,7 @@ const assistantSchema = new mongoose.Schema(
       unique: true,
       lowercase: true,
     },
-    password: { type: String, required: true },
+    password: { type: String },
 
     // phoneNumber: { type: String, required: true },
     // country: { type: String, required: true },
