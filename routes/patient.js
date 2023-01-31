@@ -8,6 +8,7 @@ const isAssistance = require('../middleware/assistantAuthorize');
 
 router.post(
   '/addPatient',
+  authorize,
   expressAsyncHandler(async (req, res) => {
     const {
       email,
@@ -78,8 +79,6 @@ router.post(
 router.get(
   '/getPatient',
   authorize,
-  isAssistance,
-
   expressAsyncHandler(async (req, res) => {
     console.log(req.user._id);
     const patients = await Patient.find({ createdBy: req.user._id });
