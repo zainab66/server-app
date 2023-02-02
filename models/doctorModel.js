@@ -19,7 +19,7 @@ const doctorSchema = new mongoose.Schema(
     password: { type: String, required: true },
     role: { type: String, required: true },
     profilePicture: { type: String },
-    resetLink: { String, default: '' },
+    token: { type: String, default: '' },
   },
   {
     timestamps: true,
