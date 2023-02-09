@@ -81,7 +81,9 @@ router.get(
   authorize,
   expressAsyncHandler(async (req, res) => {
     console.log(req.user._id);
-    const patients = await Patient.find({ createdBy: req.user._id });
+    // const patients = await Patient.find({ createdBy: req.user._id });
+    const patients = await Patient.find({});
+
     res.status(200).json({ patients });
     //console.log(patients, patients[0]._id);
   })
@@ -113,9 +115,7 @@ router.delete(
   '/:patientId',
   authorize,
   expressAsyncHandler(async (req, res) => {
-    const { patientId } = req.params;
-    const patient = await Patient.findOne({ patientId: req.params.patientId });
-    console.log(patientId);
+    const patient = await Patient.findOne({ _id: req.params.patientId });
     if (patient) {
       const deletePatient = await patient.remove();
       res.send({ message: 'Patient Deleted', deletePatient });
@@ -124,4 +124,5 @@ router.delete(
     }
   })
 );
+
 module.exports = router;

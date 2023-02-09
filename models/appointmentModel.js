@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const patientSchema = new mongoose.Schema(
+const appointmentSchema = new mongoose.Schema(
   {
     firstName: {
       type: String,
@@ -25,11 +25,28 @@ const patientSchema = new mongoose.Schema(
     region: { type: String, required: true },
     postalCode: { type: String, required: true },
     isPatient: { type: String, default: true, required: true },
+    patientCreatedBy: { type: String, required: true },
+
     createdBy: { type: String, required: true },
+    appointmentStatus: {
+      type: String,
+      required: true,
+      trim: true,
+      lowercase: true,
+    },
+    visitDate: {
+      type: Date,
+    },
+    visitTime: {
+      type: String,
+    },
+    patientId: { type: String, required: true },
+    createdBy: { type: String, required: true },
+    updatedAt: Date,
   },
   {
     timestamps: true,
   }
 );
-const Patient = mongoose.model('Patient', patientSchema);
-module.exports = Patient;
+const Appointment = mongoose.model('Appointment', appointmentSchema);
+module.exports = Appointment;

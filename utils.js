@@ -12,7 +12,7 @@ const generateToken = (user) => {
     },
     process.env.JWT_SIGNIN_KEY || 'somethingsecret',
     {
-      expiresIn: '30d',
+      expiresIn: '1d',
     }
   );
 };

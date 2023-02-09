@@ -94,23 +94,23 @@ router.delete(
   authorize,
   expressAsyncHandler(async (req, res) => {
     //const { todoId } = req.params
-    const user = await Assistant.findOne({ userId: req.params.userId });
+    const user = await Assistant.findOne({ _id: req.params.userId });
     // console.log(todoId)
     if (user) {
       const deleteUser = await user.remove();
-      res.send({ message: 'User Deleted', user: deleteUser });
+      res.status(200).json({ message: 'User Deleted', user: deleteUser });
     } else {
-      res.status(404).send({ message: 'User Not Found' });
+      res.status(404).json({ message: 'User Not Found' });
     }
   })
 );
 router.put(
-  '/:id',
+  '/:assisstantId',
   authorize,
   isDoctor,
   expressAsyncHandler(async (req, res) => {
-    const user = await Assistant.findById(req.params.id);
-    console.log('user', req.params.id);
+    const user = await Assistant.findById(req.params.assisstantId);
+    console.log('user', req.params.assisstantId);
     if (user) {
       user.fullName = req.body.fullName || user.fullName;
       user.email = req.body.email || user.email;
