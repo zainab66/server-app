@@ -8,6 +8,64 @@ const Assistant = require('../models/assistantModel.js');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 const _ = require('lodash');
+const multer = require('multer');
+const path = require('path');
+const multerS3 = require('multer-s3');
+const aws = require('aws-sdk');
+const shortid = require('shortid');
+const env = require('dotenv');
+env.config();
+const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
+
+// const storage = multer.diskStorage({
+//   destination(req, file, cb) {
+//     cb(null, path.join(path.dirname(__dirname), 'uploads'));
+//   },
+//   filename(req, file, cb) {
+//     cb(null, file.originalname);
+//   },
+// });
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
+
+const s3 = new S3Client({
+  credentials: {
+    accessKeyId: process.env.ACCESS_KEY_ID,
+    secretAccessKey: process.env.SECRET_ACCESS_KEY,
+  },
+  region: process.env.AWS_REGION,
+});
+
+// const storage = multer.diskStorage({
+//   destination(req, file, cb) {
+//     cb(null, path.join(path.dirname(__dirname), 'uploads'));
+//   },
+//   filename(req, file, cb) {
+//     cb(null, shortid.generate() + '-' + file.originalname);
+//   },
+// });
+
+// const s3 = new aws.S3({
+//   accessKeyId: process.env.ACCESS_KEY_ID,
+//   secretAccessKey: process.env.SECRET_ACCESS_KEY,
+//   region: process.env.AWS_REGION,
+// });
+
+// // const upload = multer({ storage });
+
+// const upload = multer({
+//   storage: multerS3({
+//     s3: s3,
+//     bucket: 'xi-team',
+//     acl: 'public-read',
+//     metadata: function (req, file, cb) {
+//       cb(null, { fieldName: 'TESTING_METADATA' });
+//     },
+//     key: function (req, file, cb) {
+//       cb(null, Date.now().toString());
+//     },
+//   }),
+// });
 
 /* GET users listing. */
 router.get('/', function (req, res, next) {
@@ -213,6 +271,49 @@ router.put(
       );
     } else {
       return res.status(401).json({ message: 'Authentication error' });
+    }
+  })
+);
+
+router.put(
+  '/editUser',
+  upload.single('image'),
+  expressAsyncHandler(async (req, res) => {
+    const { email, name, about, image, id } = req.body;
+
+    const doctor = await Doctor.findById({ _id: req.body.id });
+
+    const params = {
+      Bucket: process.env.S3_BUCKET,
+      Key: req.file.originalname,
+      Body: req.file.buffer,
+      ContentType: req.file.mimetype,
+    };
+
+    const command = new PutObjectCommand(params);
+
+    await s3.send(command);
+    if (doctor) {
+      doctor.name = req.body.name || doctor.name;
+      doctor.email = req.body.email || doctor.email;
+      doctor.about = req.body.about || doctor.about;
+      doctor.image = req.file.originalname || doctor.image;
+      const updatedDoctor = await doctor.save();
+      res.status(200).json({ updatedDoctor, message: 'User Updated' });
+    } else {
+      res.status(404).json({ message: 'User Not Found' });
+    }
+  })
+);
+
+router.get(
+  '/getUser/:id',
+  expressAsyncHandler(async (req, res) => {
+    const user = await Doctor.findById(req.params.id);
+    if (user) {
+      res.json({ profile: user, message: 'Success' });
+    } else {
+      res.status(404).json({ message: 'User Not Found' });
     }
   })
 );

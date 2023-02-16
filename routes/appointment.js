@@ -137,4 +137,32 @@ router.delete(
   })
 );
 
+router.put(
+  '/:patientId',
+  authorize,
+  expressAsyncHandler(async (req, res) => {
+    // console.log(req.params.patientId);
+
+    const appointment = await Appointment.findOne({
+      patientId: req.params.patientId,
+    });
+    if (appointment) {
+      appointment.visitTime = req.body.visitTime || appointment.visitTime;
+      appointment.visitDate = req.body.visitDate || appointment.visitDate;
+      appointment.appointmentStatus =
+        req.body.appointmentStatus || appointment.appointmentStatus;
+      appointment.createdBy = req.body.createdBy || appointment.createdBy;
+
+      const updatedAppointment = await appointment.save();
+      res
+        .status(200)
+        .json({ updatedAppointment, message: 'updatedAppointment Updated' });
+      // res.send({ message: 'Patient Updated',updatedpatient });
+      // console.log('p', updatedpatient);
+    } else {
+      res.status(404).json({ message: 'updatedAppointment Not Found' });
+    }
+  })
+);
+
 module.exports = router;

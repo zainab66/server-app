@@ -20,6 +20,7 @@ const doctorSchema = new mongoose.Schema(
     role: { type: String, required: true },
     profilePicture: { type: String },
     token: { type: String, default: '' },
+    image: { type: String },
   },
   {
     timestamps: true,

@@ -18,6 +18,7 @@ const assistantSchema = new mongoose.Schema(
     },
     password: { type: String },
     token: { type: String, default: '' },
+    image: { type: String },
 
     // phoneNumber: { type: String, required: true },
     // country: { type: String, required: true },
