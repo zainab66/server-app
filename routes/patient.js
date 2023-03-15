@@ -80,7 +80,7 @@ router.get(
   '/getPatient',
   authorize,
   expressAsyncHandler(async (req, res) => {
-    console.log(req.user._id);
+    //console.log(req.user._id);
     // const patients = await Patient.find({ createdBy: req.user._id });
     const patients = await Patient.find({});
 
