@@ -126,7 +126,7 @@ router.post(
             const updatedAssistant = await userLogin.save();
             const user = {
               _id: updatedAssistant._id,
-              name: updatedAssistant.name,
+              fullName: updatedAssistant.fullName,
               email: updatedAssistant.email,
               role: updatedAssistant.role,
               token: generateToken(updatedAssistant),
@@ -139,7 +139,7 @@ router.post(
           const updatedAssistant = await userLogin.save();
           const user = {
             _id: updatedAssistant._id,
-            name: updatedAssistant.name,
+            fullName: updatedAssistant.fullName,
             email: updatedAssistant.email,
             role: updatedAssistant.role,
             token: generateToken(updatedAssistant),

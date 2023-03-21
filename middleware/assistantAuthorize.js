@@ -1,4 +1,4 @@
-const isAssistance = (req, res, next) => {
+const isAssistant = (req, res, next) => {
   if (req.user && req.user.role === 'Assistant') {
     next();
   } else {
@@ -6,4 +6,4 @@ const isAssistance = (req, res, next) => {
   }
 };
 
-module.exports = isAssistance;
+module.exports = isAssistant;
