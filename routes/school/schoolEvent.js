@@ -1,16 +1,18 @@
 const express = require('express');
 const router = express.Router();
-const Event = require('../models/eventModel.js');
 const expressAsyncHandler = require('express-async-handler');
-const authorize = require('../middleware/authorize');
+const authorize = require('../../middleware/authorize');
+const isPrinciple = require('../../middleware/principleAuthorize');
+const schoolEvent = require('../../models/schoolModels/schoolEventModel.js');
 
 router.post(
   '/addEvent',
   authorize,
+  isPrinciple,
   expressAsyncHandler(async (req, res) => {
     const { eventTitle, eventDescription, startDate, endDate } = req.body;
 
-    const event = new Event({
+    const event = new schoolEvent({
       start: req.body.startDate,
       end: req.body.endDate,
       title: req.body.eventTitle,
@@ -27,8 +29,9 @@ router.post(
 router.get(
   '/getEvents',
   authorize,
+  isPrinciple,
   expressAsyncHandler(async (req, res) => {
-    const events = await Event.find({});
+    const events = await schoolEvent.find({});
     res.status(200).json({ events });
   })
 );
@@ -36,8 +39,9 @@ router.get(
 router.delete(
   '/:eventId',
   authorize,
+  isPrinciple,
   expressAsyncHandler(async (req, res) => {
-    const event = await Event.findOne({
+    const event = await schoolEvent.findOne({
       eventId: req.params.eventId,
     });
     if (event) {
@@ -52,9 +56,10 @@ router.delete(
 router.put(
   '/edit/:eventId',
   authorize,
+  isPrinciple,
 
   expressAsyncHandler(async (req, res) => {
-    const event = await Event.findById(req.params.eventId);
+    const event = await schoolEvent.findById(req.params.eventId);
     console.log('user', req.params.eventId);
     if (event) {
       event.end = req.body.endDate || event.end;

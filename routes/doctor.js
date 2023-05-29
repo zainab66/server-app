@@ -3,6 +3,8 @@ const router = express.Router();
 const generateToken = require('../utils.js');
 const expressAsyncHandler = require('express-async-handler');
 const Doctor = require('../models/doctorModel.js');
+const Workspace = require('../models/workspaceModel.js');
+
 const bcrypt = require('bcrypt');
 const Assistant = require('../models/assistantModel.js');
 const jwt = require('jsonwebtoken');
@@ -17,14 +19,6 @@ const env = require('dotenv');
 env.config();
 const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
 
-// const storage = multer.diskStorage({
-//   destination(req, file, cb) {
-//     cb(null, path.join(path.dirname(__dirname), 'uploads'));
-//   },
-//   filename(req, file, cb) {
-//     cb(null, file.originalname);
-//   },
-// });
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
@@ -36,37 +30,6 @@ const s3 = new S3Client({
   region: process.env.AWS_REGION,
 });
 
-// const storage = multer.diskStorage({
-//   destination(req, file, cb) {
-//     cb(null, path.join(path.dirname(__dirname), 'uploads'));
-//   },
-//   filename(req, file, cb) {
-//     cb(null, shortid.generate() + '-' + file.originalname);
-//   },
-// });
-
-// const s3 = new aws.S3({
-//   accessKeyId: process.env.ACCESS_KEY_ID,
-//   secretAccessKey: process.env.SECRET_ACCESS_KEY,
-//   region: process.env.AWS_REGION,
-// });
-
-// // const upload = multer({ storage });
-
-// const upload = multer({
-//   storage: multerS3({
-//     s3: s3,
-//     bucket: 'xi-team',
-//     acl: 'public-read',
-//     metadata: function (req, file, cb) {
-//       cb(null, { fieldName: 'TESTING_METADATA' });
-//     },
-//     key: function (req, file, cb) {
-//       cb(null, Date.now().toString());
-//     },
-//   }),
-// });
-
 /* GET users listing. */
 router.get('/', function (req, res, next) {
   res.send('respond with a resource');
@@ -75,7 +38,7 @@ router.get('/', function (req, res, next) {
 router.post(
   '/register',
   expressAsyncHandler(async (req, res) => {
-    const { name, email, password } = req.body.name;
+    const { name, email, password } = req.body;
     if (!name || !email || !password) {
       res.status(400).json({ message: 'Please add all fields' });
     }
@@ -85,13 +48,21 @@ router.post(
     if (doctorExists) {
       res.status(400).json({ message: 'User already exists' });
     }
+
+    const workspace = new Workspace({
+      name: req.body.dashboardName,
+      // other fields as needed
+    });
+    await workspace.save();
     const doctor = new Doctor({
-      name: req.body.name.name,
-      email: req.body.name.email,
-      password: bcrypt.hashSync(req.body.name.password, 8),
-      role: req.body.name.role,
+      name: req.body.name,
+      email: req.body.email,
+      password: bcrypt.hashSync(req.body.password, 8),
+      role: req.body.role,
+      workspaces: [workspace._id],
     });
     const createdDoctor = await doctor.save();
+    // console.log(createdDoctor);
     const user = {
       _id: createdDoctor._id,
       name: createdDoctor.name,
@@ -146,7 +117,7 @@ router.post(
           };
           res.send({ message: 'Login successfully', user });
         }
-      } else if (userLogin.role === 'admin') {
+      } else if (userLogin.role === 'doctor') {
         const validPassword = await bcrypt.compare(
           req.body.password,
           userLogin.password
@@ -156,13 +127,19 @@ router.post(
         }
 
         if (validPassword) {
+          const workspaces = await Workspace.findOne({
+            _id: userLogin.workspaces,
+          });
           const user = {
             _id: userLogin._id,
             name: userLogin.name,
             email: userLogin.email,
             role: userLogin.role,
             token: generateToken(userLogin),
+            workspaces: userLogin.workspaces,
+            dashboardName: workspaces.dashboardName,
           };
+
           res.json({ message: 'Login successfully', user });
         }
       }

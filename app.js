@@ -16,6 +16,15 @@ const appointmentRouter = require('./routes/appointment');
 const eventRouter = require('./routes/event');
 const taskRouter = require('./routes/task');
 
+const schoolUserRouter = require('./routes/school/schoolUser');
+const teacherRouter = require('./routes/school/teacher');
+const principleRouter = require('./routes/school/principle');
+const schoolEventRouter = require('./routes/school/schoolEvent');
+const schoolTaskRouter = require('./routes/school/schoolTask');
+const schoolStudentRouter = require('./routes/school/student');
+const schoolClassRouter = require('./routes/school/class');
+const schoolGradeRouter = require('./routes/school/grade');
+
 const app = express();
 
 // view engine setup
@@ -38,6 +47,14 @@ app.use('/api/patient', patientRouter);
 app.use('/api/appointment', appointmentRouter);
 app.use('/api/event', eventRouter);
 app.use('/api/task', taskRouter);
+app.use('/api/school/users', schoolUserRouter);
+app.use('/api/school/teacher', teacherRouter);
+app.use('/api/school/principle', principleRouter);
+app.use('/api/school/event', schoolEventRouter);
+app.use('/api/school/task', schoolTaskRouter);
+app.use('/api/school/student', schoolStudentRouter);
+app.use('/api/school/class', schoolClassRouter);
+app.use('/api/school/grade', schoolGradeRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

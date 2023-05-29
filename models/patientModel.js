@@ -16,10 +16,10 @@ const patientSchema = new mongoose.Schema(
       unique: true,
       lowercase: true,
     },
-
-    phoneNumber: { type: String, required: true },
+    bill: { type: Number, required: true },
+    phoneNumber: { type: Number, required: true },
     lastName: { type: String, required: true },
-    age: { type: String, required: true },
+    age: { type: Number, required: true },
     gender: { type: String, required: true },
     city: { type: String, required: true },
     region: { type: String, required: true },

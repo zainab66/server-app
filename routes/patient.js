@@ -9,6 +9,7 @@ const isAssistance = require('../middleware/assistantAuthorize');
 router.post(
   '/addPatient',
   authorize,
+  isDoctor,
   expressAsyncHandler(async (req, res) => {
     const {
       email,
@@ -16,6 +17,7 @@ router.post(
       phoneNumber,
       lastName,
       age,
+      bill,
       gender,
       isPatient,
       createdBy,
@@ -48,6 +50,7 @@ router.post(
       phoneNumber: req.body.phoneNumber,
       lastName: req.body.lastName,
       age: req.body.age,
+      bill: req.body.bill,
       gender: req.body.gender,
       region: req.body.region,
       city: req.body.city,
@@ -98,8 +101,15 @@ router.put(
     const patient = await Patient.findOne({ patientId: req.params.patientId });
     if (patient) {
       patient.firstName = req.body.firstName || patient.firstName;
-      // profile.email = req.body.email || profile.email;
-      // profile.password = req.body.password||  profile.password;
+      patient.lastName = req.body.lastName || patient.lastName;
+      patient.email = req.body.email || patient.email;
+      patient.phoneNumber = req.body.phoneNumber || patient.phoneNumber;
+      patient.age = req.body.age || patient.age;
+      patient.bill = req.body.bill || patient.bill;
+      patient.gender = req.body.gender || patient.gender;
+      patient.region = req.body.region || patient.region;
+      patient.city = req.body.city || patient.city;
+      patient.postalCode = req.body.postalCode || patient.postalCode;
 
       const updatedpatient = await patient.save();
       res.status(200).json({ updatedpatient, message: 'Patient Updated' });

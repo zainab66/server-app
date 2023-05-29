@@ -30,6 +30,7 @@ const assistantSchema = new mongoose.Schema(
     // role: { type: String, required: true },
     role: { type: String, required: true },
     createdBy: { type: String, required: true },
+    type: { type: String, required: true },
   },
   {
     timestamps: true,

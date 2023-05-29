@@ -27,7 +27,7 @@ router.post(
   authorize,
   isDoctor,
   expressAsyncHandler(async (req, res) => {
-    const { fullName, email, role, createdBy } = req.body;
+    const { fullName, email, role, createdBy, type } = req.body;
     console.log(req.body);
     try {
       const oldUser =
@@ -36,14 +36,6 @@ router.post(
       if (oldUser) {
         return res.status(200).json({ message: 'User already exists' });
       } else {
-        // const user = new Assistant({
-        //   fullName: req.body.fullName,
-        //   email: req.body.email,
-        //   role: req.body.role,
-        //   createdBy: req.body.createdBy,
-        // });
-        // const createdUser = await user.save();
-
         res.status(200).json({ message: 'Invitation send successfully' });
 
         const token = jwt.sign(
@@ -59,6 +51,7 @@ router.post(
           email: req.body.email,
           role: req.body.role,
           createdBy: req.body.createdBy,
+          type: req.body.type,
           token: token,
         });
         const createdUser = await user.save();
@@ -128,9 +121,7 @@ router.delete(
   '/:userId',
   authorize,
   expressAsyncHandler(async (req, res) => {
-    //const { todoId } = req.params
     const user = await Assistant.findOne({ _id: req.params.userId });
-    // console.log(todoId)
     if (user) {
       const deleteUser = await user.remove();
       res.status(200).json({ message: 'User Deleted', user: deleteUser });
@@ -139,22 +130,6 @@ router.delete(
     }
   })
 );
-// router.put(
-//   '/:assisstantId',
-//   authorize,
-//   isDoctor,
-//   expressAsyncHandler(async (req, res) => {
-//     const user = await Assistant.findById(req.params.assisstantId);
-//     if (user) {
-//       user.fullName = req.body.fullName || user.fullName;
-//       user.email = req.body.email || user.email;
-//       const updatedUser = await user.save();
-//       res.send({ message: 'User Updated', user: updatedUser });
-//     } else {
-//       res.status(404).send({ message: 'User Not Found' });
-//     }
-//   })
-// );
 
 router.put(
   '/editAssistant',
@@ -187,34 +162,6 @@ router.put(
   })
 );
 
-// router.post(
-//   '/signin',
-//   expressAsyncHandler(async (req, res) => {
-//     const customer = await Assistant.findOne({ email: req.body.email.email });
-//     // const validPassword = await bcrypt.compare(
-//     //   req.body.email.password,
-//     //   customer.password
-//     // );
-//     // if (!validPassword) {
-//     //   return res.status(401).send('Invalid Password');
-//     // }
-//     if (customer) {
-//       // if (validPassword) {
-//       res.send({
-//         _id: customer._id,
-//         name: customer.name,
-//         email: customer.email,
-//         isCustomer: customer.isCustomer,
-//         token: generateToken(customer),
-//       });
-//       console.log('l', customer.isCustomer);
-//       return;
-//       // }
-//     }
-//     res.status(401).send({ message: 'Invalid email ' });
-//   })
-// );
-
 router.post(
   '/email-activate',
   expressAsyncHandler(async (req, res) => {
@@ -234,44 +181,6 @@ router.post(
     assistant.token = '';
     const updatedAssistant = await assistant.save();
     res.status(200).json({ message: 'Activated success', updatedAssistant });
-    // if (token) {
-    //   jwt.verify(
-    //     token,
-    //     process.env.JWT_ACC_ACTIVATE,
-    //     function (err, decodedToken) {
-    //       if (err) {
-    //         return res
-    //           .status(400)
-    //           .json({ message: 'Incorrect or Expired link' });
-    //       }
-    //       const { fullName, email, role, createdBy } = decodedToken;
-
-    //       Assistant.findOne({ email }).exec((err, user) => {
-    //         if (user) {
-    //           return res
-    //             .status(401)
-    //             .json({ message: 'Assistant already exists' });
-    //         }
-
-    //         const assistant = new Assistant({
-    //           fullName,
-    //           email,
-    //           role,
-    //           createdBy,
-    //         });
-
-    //         assistant.save((err, success) => {
-    //           if (err) {
-    //             return res.status(400).json({ error: err });
-    //           }
-    //           res.json({ message: 'Activated success', success });
-    //         });
-    //       });
-    //     }
-    //   );
-    // } else {
-    //   return res.json({ message: 'Incorrect ' });
-    // }
   })
 );
 

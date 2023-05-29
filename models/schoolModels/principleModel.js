@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const doctorSchema = new mongoose.Schema(
+const principleSchema = new mongoose.Schema(
   {
     name: {
       type: String,
@@ -19,11 +19,11 @@ const doctorSchema = new mongoose.Schema(
     password: { type: String, required: true },
     role: { type: String, required: true },
     token: { type: String, default: '' },
-    image: { type: String },
-    workspaces: [
+    image: { type: String, default: '' },
+    school: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Workspace',
+        ref: 'School',
       },
     ],
   },
@@ -31,5 +31,5 @@ const doctorSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
-const Doctor = mongoose.model('Doctor', doctorSchema);
-module.exports = Doctor;
+const Principle = mongoose.model('Principle', principleSchema);
+module.exports = Principle;
